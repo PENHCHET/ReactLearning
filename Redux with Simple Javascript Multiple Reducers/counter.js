@@ -7,7 +7,7 @@ console.log("Welcome with Redux on plain Javascript")
 //TODO: REDUCER takes the two parameters are currentState and action
 // REDUCER IS A PURE FUNCTION
 // COUNTER REDUCER
-function counter(currentState, action){
+function counterReducer(currentState, action) {
 
     if(typeof currentState === "undefined") {
         return {
@@ -39,24 +39,64 @@ function counter(currentState, action){
     }
 }
 
+function todosReducer(currentState, action) {
+    if (typeof currentState === "undefined") {
+        return {
+            todos: []
+        }
+    }
+
+    var nextState = Object.assign({}, currentState)
+
+    switch (action.type) {
+        case "NEW": 
+            console.log("NEW TODO IN REDUCER");
+            nextState.todos.push(action.payload)
+            return nextState;
+            break;
+        case "DELETE":
+            console.log("DELETE TODO IN REDUCER");
+            nextState.todos.pop()
+            return nextState;
+            break;
+        default:
+            return currentState;
+    }
+}
 
 //TODO: STATE
 var state = { count: 0 };
 
 //TODO: STORE
-var store = Redux.createStore(counter);
+var store = Redux.createStore(Redux.combineReducers({counterReducer: counterReducer, todosReducer: todosReducer}));
 
 var countElement = document.getElementById("counter");
+var todoInput = document.getElementById("todo");
+var todosList = document.getElementById("todoList")
+
 
 console.log(store);
 
 //TODO: RENDER FUNCTION
-function render(){
+function render() {
     //TODO: RENDER FUNCTION IN THE SUBSCRIBE FUNCTION
     console.log("IN RENDER SUBSCRIBE");
     console.log(store.getState());
     var state = store.getState();
-    countElement.innerHTML = state.count;
+    countElement.innerHTML = state.counterReducer.count.toString();
+    renderList(state);
+}
+
+function renderList(state) {
+    console.log(state);
+    todosList.innerHTML = '';
+    for (var i = 0; i < state.todosReducer.todos.length; i++) {
+        var li = document.createElement("li");
+        var todo = state.todosReducer.todos[i];
+        console.log(todo)
+        li.innerHTML = todo.task.toString();
+        todosList.appendChild(li);
+    }
 }
 
 render();
@@ -88,4 +128,25 @@ document.getElementById("reset")
         store.dispatch({
             type: "RESET"
         });
-    })
+    });
+
+
+//TODO: ACTION FOR TODOS
+document.getElementById("addTodo")
+    .addEventListener("click", function(){
+        console.log("ADD TODO ", todoInput.value);
+        store.dispatch({
+            type: "NEW",
+            payload: {
+                task: todoInput.value
+            }
+        });
+    });
+
+document.getElementById("deleteTodo")
+    .addEventListener("click", function(){
+        console.log("DELETE TODO");
+        store.dispatch({
+            type: "DELETE"
+        })
+    });
